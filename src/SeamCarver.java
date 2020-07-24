@@ -5,70 +5,76 @@ import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Picture;
 
 public class SeamCarver {
-	private final static double ONE_THOUSAND = 10000;
+	private final static double ONE_THOUSAND = 1000;	
 	private double[] energy;
 	private int[] edgeTo;
 	private double[] distTo;
 	private int[][] index;
-	Picture picture;
-	IndexMinPQ<Double> pq;
+	private Picture picture;
+	private IndexMinPQ<Double> pq;
 
-	public SeamCarver(Picture picture) {
+	public SeamCarver(Picture picture) {	
+		if (picture == null) throw new IllegalArgumentException();
 		initializeNewPicture(picture);
 	}
 
-	public Picture picture() { return picture; }
-	public int width() { return picture.width(); }
-	public int height() { return picture.height(); };
-	public double energy(int x, int y) { return Math.sqrt(energy[index(x,y)]); }
+	public Picture picture() { return new Picture(picture); } //return copy current picture
+	public int width() { return picture.width(); }		//width of current picture (px)
+	public int height() { return picture.height(); };	//height of current picture (px)
+	public double energy(int x, int y) { 
+		if (x < 0 || x >= width() || y < 0 || y >= height()) throw new IllegalArgumentException();
+		return energy[index(x,y)]; 
+	}
 
+	//Helper Functions
 	private void initializeNewPicture(Picture picture) {
-		this.picture = picture;
-		int width = width(), height = height();
-		int pixels = width*height;
-		pq = new IndexMinPQ<Double>(pixels);
+		this.picture = picture;	//current Picture
+		int width = width(), height = height();	//width and height of the picture in pixels
+		int pixels = width*height;	//total pixels of the picture
+		pq = new IndexMinPQ<Double>(pixels);	//priority queue to implement Dijkstra's algorithim, using
 
-		energy = new double[pixels];
-		edgeTo = new int[pixels];
-		distTo = new double [pixels];
-		index = new int[width][height];
+		energy = new double[pixels];	//energy of each pixel
+		edgeTo = new int[pixels];		//location of the pixel whose edge points to this pixel
+		distTo = new double [pixels];	//current minimum cost path to this pixel
+		index = new int[width][height];	//double array representation which returns the single index value of the pixel at (col, row). (Simplifies calculations & readability)
 
 		int count = 0;
-		for (int y = 0; y < height; y++) {
+		for (int y = 0; y < height; y++) {	//initialize single index values for each (x,y) index (used to simplify calculations and readability). I.e. the single-index representation of a double array
 			for (int x = 0; x < width; x++) {
 				index[x][y] = count++;
 			}
 		}
 
-		for (int x = 1; x < width - 1; x++) {
+		for (int x = 1; x < width - 1; x++) {	//initialize the energy of each pixel excluding top-row, bottom-row, left-most column & right-most column
 			for (int y = 1; y < height -1; y++) {
 				calculateEnergy(x,y);
 			}
 		}
 
-		for (int x = 0; x < width; x++) {
+		for (int x = 0; x < width; x++) {	//initialize top & bottom row pixel energies
 			energy[index(x,0)] = ONE_THOUSAND;
 			energy[index(x,height-1)] = ONE_THOUSAND;
 		}
 
-		for (int y = 0; y < height; y++) {
+		for (int y = 0; y < height; y++) {	//initialize left-most column & right-most column pixel energies
 			energy[index(0,y)] = ONE_THOUSAND;
 			energy[index(width-1,y)] = ONE_THOUSAND;
 		}
+
 	}
 
 	private int index(int x, int y) {
 		return index[x][y];
 	}
 
-	private void calculateEnergy(int x, int y) {
-		Color left = picture.get(x-1, y), right = picture.get(x+1, y), up = picture.get(x, y-1), down = picture.get(x, y+1);
-		double xGradient =	Math.pow(right.getBlue() - left.getBlue(), 2) + Math.pow(right.getRed() - left.getRed(), 2) + Math.pow(right.getGreen() - left.getGreen(), 2);
-		double yGradient =	Math.pow(down.getBlue() - up.getBlue(), 2) + Math.pow(down.getRed() - up.getRed(), 2) + Math.pow(down.getGreen() - up.getGreen(), 2);
-		energy[index(x,y)] = Math.sqrt(xGradient+yGradient);
+	private void calculateEnergy(int x, int y) {	//'energy' according to the dual gradient function of a given pixel (col, row)
+		Color left = picture.get(x-1, y), right = picture.get(x+1, y), up = picture.get(x, y-1), down = picture.get(x, y+1);	//retrieve colors of adjacent pixels
+		double xGradient =	Math.pow(right.getBlue() - left.getBlue(), 2) + Math.pow(right.getRed() - left.getRed(), 2) + Math.pow(right.getGreen() - left.getGreen(), 2);	//x-gradiant function - differences squared of each RGB value among the right pixel to left pixel respectively 
+		double yGradient =	Math.pow(down.getBlue() - up.getBlue(), 2) + Math.pow(down.getRed() - up.getRed(), 2) + Math.pow(down.getGreen() - up.getGreen(), 2); //y-gradiant function - differences squared of each RGB value among the pixel below to pixel above respectively 
+		energy[index(x,y)] = Math.sqrt(xGradient+yGradient);	//energy of the pixel (*note can not avoid the sqrt to save some cost from the computation as the shortest-paths of the sqrt graph and non-sqrt graphs are completely unrelated.
 	}
 
-	private void resetDistTo() {
+	private void resetDistTo() {	//reset weight of every path to each column *note- additional step must taken from the location of the source of this call. Must additionaly set the weight of each source value to 0.
 		int pixels = width()*height();
 		for (int i = 0; i < pixels; i++) {
 			distTo[i] = Double.POSITIVE_INFINITY;
@@ -79,7 +85,7 @@ public class SeamCarver {
 		if (y >= height()-1) return;
 		int lowerBound = -1, upperBound = 1;
 		if (x == 0) lowerBound = 0;
-		else if (x == width()-1) upperBound = 0;
+		if (x == width()-1) upperBound = 0;
 
 		int sourceIndex = index(x, y);
 		for (int i = lowerBound; i <= upperBound; i++) {
@@ -97,12 +103,11 @@ public class SeamCarver {
 		if (x >= width()-1) return;
 		int lowerBound = -1, upperBound = 1;
 		if (y == 0) lowerBound = 0;
-		else if (y == height()-1) upperBound = 0;
+		if (y == height()-1) upperBound = 0;
 
 		int sourceIndex = index(x,y);
 		for (int i = lowerBound; i <= upperBound; i++) {
 			int index = index(x+1, i+y);
-			//System.out.println("source: " + x + " " + y + " Neighbor: " + index%width() + " " + index/width() + " Source:" + distTo[sourceIndex] + " Neighbor: "+ distTo[index] + " energy: " + energy[index]);
 			if (distTo[index] > energy[index] + distTo[sourceIndex]) {
 				distTo[index] = energy[index] + distTo[sourceIndex];
 				edgeTo[index] = sourceIndex;
@@ -172,6 +177,13 @@ public class SeamCarver {
 	}
 
 	public void removeHorizontalSeam(int[] seam) {
+		if (seam == null || seam.length < width() || !(width() >= 1)) throw new IllegalArgumentException();
+		for (int verticalIndice = 0; verticalIndice < seam.length; verticalIndice++) {
+			if (seam[verticalIndice] < 0 || seam[verticalIndice] >= height()) throw new IllegalArgumentException();
+			else if (verticalIndice < seam.length-1) {
+				if (Math.abs(seam[verticalIndice] - seam[verticalIndice+1]) > 1) throw new IllegalArgumentException();
+			}
+		}
 		Picture newPicture = new Picture(width(), height()-1);
 		int height = height() - 1, width = width();
 		for (int x = 0; x < width; x++) {
@@ -188,7 +200,14 @@ public class SeamCarver {
 		initializeNewPicture(newPicture);
 	}
 
-	public void removeVerticalSeam(int[] seam) {
+	public void removeVerticalSeam(int[] seam) {	//Remove the vertical seam and initialize the replacement picture
+		if (seam == null || seam.length < height() || !(height() >= 1)) throw new IllegalArgumentException();
+		for (int horizontalIndice = 0; horizontalIndice < seam.length; horizontalIndice++) {
+			if (seam[horizontalIndice] < 0 || seam[horizontalIndice] >= width()) throw new IllegalArgumentException();
+			else if (horizontalIndice < seam.length-1) {
+				if (Math.abs(seam[horizontalIndice] - seam[horizontalIndice+1]) > 1) throw new IllegalArgumentException();
+			}
+		}
 		Picture newPicture = new Picture(width()-1, height());
 		int height = height(), width = width()-1;
 		for (int h = 0; h < height; h++) {
@@ -206,11 +225,13 @@ public class SeamCarver {
 	}
 
 	public static void main(String[] args) {
-		Picture picture = new Picture("ocean.png");
+		Picture picture = new Picture("7x3.png");
+		int[] ar = {0, 0, 1, 0, 0, 0, 0, -1, 0, 0};
 		SeamCarver seam = new SeamCarver(picture);
-		for (int i = 0; i < 180; i++) {
+		seam.removeHorizontalSeam(ar);;
+		/*for (int i = 0; i < 180; i++) {
 			seam.removeHorizontalSeam(seam.findHorizontalSeam());
-		}
+		}*/
 		/*int[] seamAr = seam.findHorizontalSeam();
 		for (int i : seamAr) {
 				System.out.println(i);
@@ -218,10 +239,4 @@ public class SeamCarver {
 		//seam.removeHorizontalSeam(seamAr);
 		seam.picture.save("test.png");
 	}
-
-
-
-
-
-
 }
