@@ -1,6 +1,4 @@
 import java.awt.Color;
-import java.util.Stack;
-
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Picture;
 
@@ -15,7 +13,7 @@ public class SeamCarver {
 
 	public SeamCarver(Picture picture) {	
 		if (picture == null) throw new IllegalArgumentException();
-		initializeNewPicture(picture);
+		initializeNewPicture(picture, null, null);
 	}
 
 	public Picture picture() { return new Picture(picture); } //return copy current picture
@@ -27,30 +25,95 @@ public class SeamCarver {
 	}
 
 	//Helper Functions
-	private void initializeNewPicture(Picture picture) {
+	private void initializeNewPicture(Picture picture, String orientation, int[] seam) {
 		this.picture = picture;	//current Picture
 		int width = width(), height = height();	//width and height of the picture in pixels
 		int pixels = width*height;	//total pixels of the picture
-		pq = new IndexMinPQ<Double>(pixels);	//priority queue to implement Dijkstra's algorithim, using
 
-		energy = new double[pixels];	//energy of each pixel
+		pq = new IndexMinPQ<Double>(pixels);	//priority queue to implement Dijkstra's algorithim, using
 		edgeTo = new int[pixels];		//location of the pixel whose edge points to this pixel
 		distTo = new double [pixels];	//current minimum cost path to this pixel
-		index = new int[width][height];	//double array representation which returns the single index value of the pixel at (col, row). (Simplifies calculations & readability)
 
+		if (orientation == null) {	//calculate energy of all inner pixels
+			initializeColRowConversion();
+			intializeInnerPixels();
+		}else if (orientation == "horizontal") {	//only recalculate energy of the pixels affected by a horizontal seam cut
+			initializeHorizontalPixels(seam, energy);
+			initializeColRowConversion();
+		}else if (orientation == "vertical") {	//only recalculate energy of the pixels affected by a vertical seam cut
+			initializeColRowConversion();
+			initializeVerticalPixels(seam, energy);
+		}
+
+		initializeOuterPixels();
+	}
+
+	private int index(int x, int y) {
+		return index[x][y];
+	}
+
+	private void initializeHorizontalPixels(int[] seam, double[] copyOfEnergy) { //re-initialize the energy of the pixels whose energy must have changed due to a horizontal seam cut
+		int width = width(), height = height(), pixels = width*height;
+
+		energy = new double[pixels];	//energy of each pixel
+		for (int x = 1; x < width - 1; x++) {
+			int offset = 0;
+			for (int y = 1; y < height -1; y++) {
+				if (seam[x]-1 == y) {
+					calculateEnergy(x,y);
+				}else if (seam[x] == y) {
+					calculateEnergy(x,y);
+					offset++;
+				}else {
+					energy[index(x,y)] = copyOfEnergy[index(x,y+offset)];
+				}
+			}
+		}
+	}
+
+	private void initializeVerticalPixels(int[] seam, double[] copyOfEnergy) { //re-initialize the energy of the pixels whose energy must have changed due to a horizontal seam cut
+		int width = width(), height = height(), pixels = width*height;
+		energy = new double[pixels];	//energy of each pixel
+		int offset = 1;
+		for (int y = 1; y < height-1; y++) {
+			for (int x = 1; x < width-1; x++) {
+				if (seam[y]-1 == x) {
+					calculateEnergy(x,y);
+				}else if (seam[y] == x) {
+					calculateEnergy(x,y);
+					offset++;
+				}else {
+					energy[index(x,y)] = copyOfEnergy[index(x,y)+offset];
+				}
+			}
+			if (seam[y] == width()-1) offset++;
+		}
+	}
+
+	private void initializeColRowConversion() {
+		int width = width(), height = height();
+		index = new int[width][height];	//double array representation which returns the single index value of the pixel at (col, row). (Simplifies calculations & readability)
 		int count = 0;
 		for (int y = 0; y < height; y++) {	//initialize single index values for each (x,y) index (used to simplify calculations and readability). I.e. the single-index representation of a double array
 			for (int x = 0; x < width; x++) {
 				index[x][y] = count++;
 			}
 		}
+	}
 
+	private void intializeInnerPixels() {
+		int width = width(), height = height();
+		int pixels = width*height;
+		energy = new double[pixels];	//energy of each pixel
 		for (int x = 1; x < width - 1; x++) {	//initialize the energy of each pixel excluding top-row, bottom-row, left-most column & right-most column
 			for (int y = 1; y < height -1; y++) {
 				calculateEnergy(x,y);
 			}
 		}
+	}
 
+	private void initializeOuterPixels() {
+		int width = width(), height = height();
 		for (int x = 0; x < width; x++) {	//initialize top & bottom row pixel energies
 			energy[index(x,0)] = ONE_THOUSAND;
 			energy[index(x,height-1)] = ONE_THOUSAND;
@@ -60,11 +123,6 @@ public class SeamCarver {
 			energy[index(0,y)] = ONE_THOUSAND;
 			energy[index(width-1,y)] = ONE_THOUSAND;
 		}
-
-	}
-
-	private int index(int x, int y) {
-		return index[x][y];
 	}
 
 	private void calculateEnergy(int x, int y) {	//'energy' according to the dual gradient function of a given pixel (col, row)
@@ -197,7 +255,7 @@ public class SeamCarver {
 				}
 			}
 		}
-		initializeNewPicture(newPicture);
+		initializeNewPicture(newPicture, "horizontal", seam);
 	}
 
 	public void removeVerticalSeam(int[] seam) {	//Remove the vertical seam and initialize the replacement picture
@@ -221,22 +279,57 @@ public class SeamCarver {
 				}
 			}
 		}
-		initializeNewPicture(newPicture);
+		initializeNewPicture(newPicture, "vertical", seam);
 	}
 
 	public static void main(String[] args) {
-		Picture picture = new Picture("7x3.png");
-		int[] ar = {0, 0, 1, 0, 0, 0, 0, -1, 0, 0};
-		SeamCarver seam = new SeamCarver(picture);
-		seam.removeHorizontalSeam(ar);;
-		/*for (int i = 0; i < 180; i++) {
-			seam.removeHorizontalSeam(seam.findHorizontalSeam());
-		}*/
+		Picture picture = new Picture("road.png");
+		//seemIdentical seam = new seemIdentical(picture);
+		
+		/*
+		long average = 0;
+		for (int i = 0; i < 100; i++) {
+			SeamCarver seam = new SeamCarver(picture);
+			long currentTime = System.currentTimeMillis();
+			for (int run = 0; run < 280; run++) {
+				seam.removeVerticalSeam(seam.findVerticalSeam());
+				average += System.currentTimeMillis() - currentTime;
+			}
+		}
+		System.out.println("Average: " + (average/100));
+		 */
+		//seam.picture().save("test2.png");
 		/*int[] seamAr = seam.findHorizontalSeam();
 		for (int i : seamAr) {
 				System.out.println(i);
 		}*/
 		//seam.removeHorizontalSeam(seamAr);
-		seam.picture.save("test.png");
+		/*
+		seamIdentical seam = new seamIdentical(picture);
+		SeamCarver seamC = new SeamCarver(picture);
+		for (int run = 0; run < 100; run++) {
+			int [] seamAr = seam.findHorizontalSeam();
+			for (int i : seamAr) {
+				System.out.print(i + " ");
+			}
+			System.out.println(" ");
+			seam.removeHorizontalSeam(seamAr);
+			seamAr = seamC.findHorizontalSeam();
+			for (int i : seamAr) {
+				System.out.print(i + " ");
+			}
+			seamC.removeHorizontalSeam(seamAr);
+			System.out.println(" ");
+		}
+		seamC.picture().save("test2.png");
+		seam.picture().save("test1.png");
+		for (int h = 0 ; h < seam.height(); h++) {
+			for (int w = 0; w < seam.width(); w++) {
+				if (seam.energy(w, h) != seamC.energy(w, h)) {
+					System.out.println(w + " " + h + " " + seam.energy(w, h) + " " + seamC.energy(w, h));
+				}	
+			}
+		}*/
+
 	}
 }
