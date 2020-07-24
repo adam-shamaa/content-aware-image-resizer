@@ -94,9 +94,15 @@ public class SeamCarver {
 	}
 
 	private void relaxHorizontal(int x, int y) {
+		if (x >= width()-1) return;
+		int lowerBound = -1, upperBound = 1;
+		if (y == 0) lowerBound = 0;
+		else if (y == height()-1) upperBound = 0;
+
 		int sourceIndex = index(x,y);
-		for (int i = -1; i <= 1; i++) {
-			int index = index(x+1, i+1);
+		for (int i = lowerBound; i <= upperBound; i++) {
+			int index = index(x+1, i+y);
+			//System.out.println("source: " + x + " " + y + " Neighbor: " + index%width() + " " + index/width() + " Source:" + distTo[sourceIndex] + " Neighbor: "+ distTo[index] + " energy: " + energy[index]);
 			if (distTo[index] > energy[index] + distTo[sourceIndex]) {
 				distTo[index] = energy[index] + distTo[sourceIndex];
 				edgeTo[index] = sourceIndex;
@@ -140,12 +146,12 @@ public class SeamCarver {
 		int width = width(), height = height();
 		for (int h = 0; h < height; h++) {
 			distTo[index(0,h)] = 0;
-			pq.insert(h, 0.0);
+			pq.insert(index(0,h), 0.0);
 		}
 
 		while (!pq.isEmpty()) {
 			int index = pq.delMin();
-			relaxVertical(index%width, index/width);
+			relaxHorizontal(index%width, index/width);
 		}
 
 		double minDistance = Double.POSITIVE_INFINITY;
@@ -157,12 +163,12 @@ public class SeamCarver {
 			}
 		}
 
-		int[] horizontalVals = new int[width];
+		int[] verticalVals = new int[width];
 		int arrayIndex = width;
 		for (int i = minDistanceIndex; arrayIndex > 0; i = edgeTo[i]) {
-			horizontalVals[--arrayIndex] = i/width;
+			verticalVals[--arrayIndex] = i/width;
 		}
-		return horizontalVals;
+		return verticalVals;
 	}
 
 	public void removeHorizontalSeam(int[] seam) {
@@ -202,11 +208,14 @@ public class SeamCarver {
 	public static void main(String[] args) {
 		Picture picture = new Picture("ocean.png");
 		SeamCarver seam = new SeamCarver(picture);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 180; i++) {
 			seam.removeHorizontalSeam(seam.findHorizontalSeam());
 		}
-		int[] seamAr = seam.findHorizontalSeam();
-		seam.removeHorizontalSeam(seamAr);
+		/*int[] seamAr = seam.findHorizontalSeam();
+		for (int i : seamAr) {
+				System.out.println(i);
+		}*/
+		//seam.removeHorizontalSeam(seamAr);
 		seam.picture.save("test.png");
 	}
 
