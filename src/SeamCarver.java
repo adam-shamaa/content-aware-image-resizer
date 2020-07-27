@@ -10,7 +10,7 @@ import java.util.Queue;
  * @author Adam Shamaa
  *
  */
-public class SeamCarver {
+public class SeamCarver implements Runnable{
 	private final static double ONE_THOUSAND = 1000;
 	private ArrayList<Double>[] energy;
 	private int[] edgeTo;
@@ -292,11 +292,35 @@ public class SeamCarver {
 			} 
 		}
 	}
-	
+
 	public void shiftStackUp(int x, int y) {			//'deletion' method to shift all pixels below a delete pixel upwards
 		for (int i = y; i < height(); i++) {
 			energy[i].set(x, energy[i+1].get(x));
 		}
+	}
+	
+	private boolean stopThread;
+
+	//GUI helper functions
+	public void run() {
+		int width = width()-1;
+		for (int i = 0; i < width; i++) {
+			if (stopThread) return;
+			removeVerticalSeam(findVerticalSeam());
+			pictures[i] = picture();
+			widthHeightJSlider.setMaximum(i);
+		}
+	}
+	public void insertJSlider(javax.swing.JSlider JSlider) {
+		this.widthHeightJSlider = JSlider;
+	}
+
+	public Picture getPicture(int pixelsRemoved) {
+		return pictures[pixelsRemoved];
+	}
+	
+	public void stopThread() {
+		stopThread = true;
 	}
 
 	public static void main(String[] args) {
