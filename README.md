@@ -11,7 +11,7 @@
 8. [Installation/Contribution](#Can-I-contribute-or-try-it-out?)
 
 ### Motivation
-Like a few of my other projects published on GitHub, I started working on this project while learning about data structures and algorithms [^1]. Part 2 of the  courses referenced dives into graph theory with topics such as spanning trees, tries, max/min flow applications and a lot of other good stuff (I highly recommend checking them out!).   
+Like a few of my other projects published on GitHub, I started working on this project while learning about data structures and algorithms <sup>[[1]](#1)</sup>. Part 2 of the  course referenced, dives into graph theory with topics such as spanning trees, tries, max/min flow applications and a lot of other good stuff (I highly recommend checking them out!).   
 
 This is definitely one of my favorite applications that uses the knowledge learned from those courses in graph theory. It's both pratical, intuitive and very interesting. There were also many places to learn and try out different things. For example I ended up implementing a few different graph traversing algorithims such as Dijkstra's and Bellman Ford's. I found that in the implementations used, Bellman Ford's provided the most optimal performance in this application.
 
@@ -42,7 +42,7 @@ Coming Soon!
 Coming Soon!
 
 #### Credit
-I wouldn't have been able to write this project without the resources from the algorithms courses[^1] by Princeton . 
+I wouldn't have been able to write this project without the resources from the algorithms courses<sup>[[1]](#1)</sup> by Princeton . 
 
 
 I also used their [Picture Class](https://algs4.cs.princeton.edu/code/javadoc/edu/princeton/cs/algs4/Picture.html) which allowed for the internal storing of pictures to allow processing. 
@@ -50,7 +50,7 @@ I also used their [Picture Class](https://algs4.cs.princeton.edu/code/javadoc/ed
 Therefore shout out to the folks at Princeton: _Robert Sedgewick_, _Kevin Wayne_ and all the other people who contributed to these exceptionally high quality resources.
 
 
-[^1]: I'd highly recommend checking out [Princeton's Algorithms](https://www.coursera.org/learn/algorithms-part2) courses in combination with their textbook, they are very well versed! 
+<a id="1">[1]</a>: I'd highly recommend checking out [Princeton's Algorithms](https://www.coursera.org/learn/algorithms-part2) courses in combination with their textbook, they are very well versed! 
 
 
 #### Can I contribute or try it out?
@@ -59,7 +59,3 @@ Of course!
 * Open up your favorite IDE 
 * Compile and run "GUI.java" to start the application
 * Feel free to submit a pull request with any optimizations or suggestions!
-
-
-
-
