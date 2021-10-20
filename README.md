@@ -42,7 +42,7 @@ I'll briefly introduce the functionality behind this project, including the back
 - Partial Resizing while the Image is being Processed
 
 #### Screenshots
-![Demo of Image Resizing](prewiew.gif)
+![Demo of Image Resizing](preview.gif)
 
 #### Credit
 I wouldn't have been able to write this project without the resources from the algorithms courses<sup>[[1]](#1)</sup> by Princeton . 
