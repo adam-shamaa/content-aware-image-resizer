@@ -4,11 +4,8 @@
 1. [Motivation](#Motivation)
 2. [Features](#Features)
 3. [Screenshots](#Screenshots)
-4. [Background](#Background)
-5. [How it works](#How-it-works)
-6. [Optimizations](#Optimizations)
-7. [Credits](#Credit)
-8. [Installation/Contribution](#Can-I-contribute-or-try-it-out?)
+4. [Credits](#Credit)
+5. [Installation/Contribution](#Can-I-contribute-or-try-it-out?)
 
 ### Motivation
 Like a few of my other projects published on GitHub, I started working on this project while learning about data structures and algorithms <sup>[[1]](#1)</sup>. Part 2 of the  course referenced, dives into graph theory with topics such as spanning trees, tries, max/min flow applications and a lot of other good stuff (I highly recommend checking them out!).   
@@ -31,15 +28,6 @@ I'll briefly introduce the functionality behind this project, including the back
 
 ![Demo of Image Resizing](https://user-images.githubusercontent.com/61364811/103141220-97897d00-46bf-11eb-81e0-290522555f89.gif)
 
-
-#### Background
-Coming Soon!
-
-#### How it works
-Coming Soon!
-
-#### Optimizations
-Coming Soon!
 
 #### Credit
 I wouldn't have been able to write this project without the resources from the algorithms courses<sup>[[1]](#1)</sup> by Princeton . 
